@@ -17,56 +17,33 @@ public class RequestHandler {
 
     public static void registerHandler(RequestAdapter adapter){
         Class<? extends RequestAdapter> clazz = adapter.getClass();
+        Object requestAdapter;
+        try {
+            requestAdapter = clazz.getDeclaredConstructor().newInstance();
+        }catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
         Arrays.stream(clazz.getMethods())
                 .filter(method -> method.isAnnotationPresent(Request.class))
                 .forEach(method -> {
                     Request r = method.getAnnotation(Request.class);
-                    switch(r.method()){
-                        case GET -> {
-                            try {
-                                Object requestAdapter = clazz.getDeclaredConstructor().newInstance();
-                                get(r.path(), (request, response) -> method.invoke(requestAdapter, request, response));
-                            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                                     NoSuchMethodException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-                        case POST -> {
-                            try {
-                                Object requestAdapter = clazz.getDeclaredConstructor().newInstance();
-                                post(r.path(), (request, response) -> method.invoke(requestAdapter, request, response));
-                            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                                     NoSuchMethodException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-                        case PUT -> {
-                            try {
-                                Object requestAdapter = clazz.getDeclaredConstructor().newInstance();
-                                put(r.path(), (request, response) -> method.invoke(requestAdapter, request, response));
-                            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                                     NoSuchMethodException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-                        case DELETE -> {
-                            try {
-                                Object requestAdapter = clazz.getDeclaredConstructor().newInstance();
-                                delete(r.path(), (request, response) -> method.invoke(requestAdapter, request, response));
-                            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                                     NoSuchMethodException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-                        case OPTIONS -> {
-                            try {
-                                Object requestAdapter = clazz.getDeclaredConstructor().newInstance();
-                                options(r.path(), (request, response) -> method.invoke(requestAdapter, request, response));
-                            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                                     NoSuchMethodException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
+                    switch (r.method()) {
+                        case GET:
+                            get(r.path(), (request, response) -> method.invoke(requestAdapter, request, response));
+                            break;
+                        case POST:
+                            post(r.path(), (request, response) -> method.invoke(requestAdapter, request, response));
+                            break;
+                        case PUT:
+                            put(r.path(), (request, response) -> method.invoke(requestAdapter, request, response));
+                            break;
+                        case DELETE:
+                            delete(r.path(), (request, response) -> method.invoke(requestAdapter, request, response));
+                            break;
+                        case OPTIONS:
+                            options(r.path(), (request, response) -> method.invoke(requestAdapter, request, response));
+                            break;
                     }
                 });
     }
